@@ -1,17 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TeleportCurve : MonoBehaviour
+public class golfball : MonoBehaviour
 {
     public Transform teleportCircleUI;
     LineRenderer lr;
     Vector3 originScale = Vector3.one * 0.02f;
 
     public int linesmooth = 40;//부드러움 정도
-    public float curveLength = 50;//커브 걸이
+    public float curveLength = 50;//커브 걸이 (발사 파워를 정할 것 )
     public float gravity = -60;// 중력
     public float simulateTime = 0.02f;//간격
-    List<Vector3> lines=  new List<Vector3>();
+
+    public float leftRightAngle = 0f;
+    public float upDownAngle = 45f;//8~15,20~45,45~60각도가 적당 나중에 각도 조절할 때 제한 설정할 것, 또는 각도 값을 고정으로 둘 것
+
+    //debug var (아래 값은 디버그할 때만 쓰일 것)
+    public float deb_anglechange = 0f;
+    List<Vector3> lines =  new List<Vector3>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -19,15 +25,17 @@ public class TeleportCurve : MonoBehaviour
         teleportCircleUI.gameObject.SetActive(false);
 
         lr = GetComponent<LineRenderer>();
-        lr.startWidth = 0.0f;
-        lr.endWidth = 0.2f;
+        lr.startWidth = 0.1f;
+        lr.endWidth = 0.1f;
     }
 
     // Update is called once per frame
     void Update()
     {
+        
         if(ARAVRInput.GetDown(ARAVRInput.Button.HandTrigger ,ARAVRInput.Controller.LTouch))
         {
+            
             lr.enabled = true;
         }
         else if (ARAVRInput.GetUp(ARAVRInput.Button.HandTrigger,ARAVRInput.Controller.LTouch))
@@ -36,8 +44,9 @@ public class TeleportCurve : MonoBehaviour
 
             if(teleportCircleUI.gameObject.activeSelf)
             {
+                Debug.Log("tp");
                 GetComponent<CharacterController>().enabled = false;
-                transform.position = teleportCircleUI.position + Vector3.up;
+                transform.position = teleportCircleUI.position + (Vector3.up*0.1f);
                 GetComponent<CharacterController>().enabled = true;
             }
 
@@ -47,14 +56,20 @@ public class TeleportCurve : MonoBehaviour
         {
             MakeLines();
         }
+
+        //debug update
+        leftRightAngle += deb_anglechange * Time.deltaTime;
     }
 
     void MakeLines()
     {
         lines.RemoveRange(0,lines.Count);
 
-        Vector3 dir = ARAVRInput.LHandDirection * curveLength;
-        Vector3 pos = ARAVRInput.LHandPosition;
+        Quaternion pitch = Quaternion.AngleAxis(-upDownAngle, transform.right); // -> 유니티에선 right축으로 음수쪽이 윗쪽방향
+        Quaternion yaw = Quaternion.AngleAxis(leftRightAngle, transform.up);
+
+        Vector3 dir = pitch * yaw * transform.forward * curveLength;
+        Vector3 pos = transform.position;
         lines.Add(pos);
 
         for(int i=0;i<linesmooth;i++)

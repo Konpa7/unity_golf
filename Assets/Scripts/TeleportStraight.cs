@@ -1,4 +1,3 @@
-using UnityEditor.Profiling;
 using UnityEngine;
 
 public class TeleportStraight : MonoBehaviour
