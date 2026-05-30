@@ -4,10 +4,13 @@ using UnityEngine;
 public class golfball : MonoBehaviour
 {
     public Transform teleportCircleUI;
+    public TMPro.TextMeshProUGUI windtextUI;
+    public RectTransform windArrowUI;
+
     LineRenderer lr;
     Vector3 originScale = Vector3.one * 0.02f;
 
-    public int linesmooth = 40;//부드러움 정도
+    public int linesmooth = 300;//부드러움 정도 -> (선 길이)
     public float curveLength = 50;//커브 걸이 (발사 파워를 정할 것 )
     public float gravity = -60;// 중력
     public float simulateTime = 0.02f;//간격
@@ -29,12 +32,13 @@ public class golfball : MonoBehaviour
         lr = GetComponent<LineRenderer>();
         lr.startWidth = 0.1f;
         lr.endWidth = 0.1f;
+
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        
         if(ARAVRInput.GetDown(ARAVRInput.Button.HandTrigger ,ARAVRInput.Controller.LTouch))
         {
             
@@ -60,7 +64,9 @@ public class golfball : MonoBehaviour
         }
 
         //debug update
-        leftRightAngle += deb_anglechange * Time.deltaTime;
+        UpdateWindText();//!! 옮길것
+
+        leftRightAngle += deb_anglechange * Time.deltaTime;//완전 디버그용
     }
 
     void MakeLines()
@@ -123,5 +129,15 @@ public class golfball : MonoBehaviour
 
 
         return false;
+    }
+    
+    void  UpdateWindText()
+    {
+        windtextUI.text = $"{wind.magnitude:F1} m/s";
+
+        float angle = Mathf.Atan2(-wind.x, -wind.z) * Mathf.Rad2Deg;//왜 음수인지 모르겠는데 이래야 3D랑 맞음
+        windArrowUI.rotation = Quaternion.Euler(0, 0, -angle);//수학은 반시계, 유니티는 시계방향
+
+        return;
     }
 }
