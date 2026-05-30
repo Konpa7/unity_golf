@@ -17,6 +17,8 @@ public class golfball : MonoBehaviour
 
     //debug var (아래 값은 디버그할 때만 쓰일 것)
     public float deb_anglechange = 0f;
+
+    public Vector3 wind = new Vector3(5f,0f,0f);
     List<Vector3> lines =  new List<Vector3>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -75,7 +77,8 @@ public class golfball : MonoBehaviour
         for(int i=0;i<linesmooth;i++)
         {
             Vector3 lastPos = pos;
-            dir .y += gravity * simulateTime;
+            dir.y += gravity * simulateTime;
+            dir += wind * simulateTime;
             pos += dir * simulateTime;
 
             if(CheckHitRay(lastPos,ref pos))
