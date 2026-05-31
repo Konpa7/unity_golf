@@ -14,12 +14,17 @@ public class golfball : MonoBehaviour
     public int linesmooth = 500;//부드러움 정도 -> (선 길이)
     public float curveLength = 50;//커브 걸이 (발사 파워를 정할 것 )
     public float gravity = -60;// 중력
-    public float airfriction = 0.2f;//공기저항
-    public float bounciness = 0.8f;//나중에 없애고 plane따라 바꿀것
-    public float stopThreshold = 0.5f;//멈춤 판단 기준 속도
+    public float airfriction = 0.005f;//공기저항
+    public float bounciness = 0.7f;//나중에 없애고 plane따라 바꿀것
+    public float stopThreshold = 0.2f;//멈춤 판단 기준 속도
     Dictionary<string, float> surfaceFriction = new Dictionary<string, float>()
     {
         {"fairway", 0.2f},
+        {"rough", 0.5f}
+    };
+    Dictionary<string, float> surfaceBounciness = new Dictionary<string, float>()
+    {
+        {"fairway", 0.7f},
         {"rough", 0.5f}
     };
     
@@ -96,10 +101,15 @@ public class golfball : MonoBehaviour
 
         for(int i=0;i<linesmooth;i++)
         {
-            if(dir.magnitude < stopThreshold || pos.y < -10f)
-            {
+            if (dir.magnitude < stopThreshold) {
+                teleportCircleUI.gameObject.SetActive(true);
+                teleportCircleUI.position = pos;
+                teleportCircleUI.forward = Vector3.up;
+                float distance = (pos - ARAVRInput.LHandPosition).magnitude;
+                teleportCircleUI.localScale = originScale * Mathf.Max(1, distance);
                 break;
             }
+            //공 굴러가게 y속도 제거
 
             Vector3 lastPos = pos;
             dir.y += gravity * simulateTime;
@@ -119,7 +129,7 @@ public class golfball : MonoBehaviour
             dir *= (1f - airfriction * simulateTime);//공기저항 적용
 
             lines.Add(pos);
-        }
+        }   
 
         lr.positionCount = lines.Count;
         lr.SetPositions(lines.ToArray());
@@ -133,15 +143,20 @@ public class golfball : MonoBehaviour
 
         if(Physics.Raycast(ray,out hitInfo, rayDir.magnitude))
         {
-            pos = hitInfo.point;
+            float radius = transform.localScale.y; // 공의 반지름
+            pos = hitInfo.point + hitInfo.normal * (radius / 2f);
+
 
             int layer = LayerMask.NameToLayer("Terrain");
             if(hitInfo.transform.gameObject.layer == layer)
             {
-                float radius = transform.localScale.y;
-
                 //반사
-                dir = Vector3.Reflect(dir, hitInfo.normal) * bounciness;
+                if (dir.magnitude < stopThreshold * 2f) {
+                    dir.y = 0f; //구름 시작
+                }
+                else {
+                    dir = Vector3.Reflect(dir, hitInfo.normal) * bounciness;
+                }
 
                 //마찰
                 string tag = hitInfo.collider.tag;
@@ -149,15 +164,13 @@ public class golfball : MonoBehaviour
                 {
                     dir *= (1f - surfaceFriction[tag]);
                 }
-
-
-                //pos.y += radius/2; //구의 반지름만큼 높이 조정
-
                 teleportCircleUI.gameObject.SetActive(true);
                 teleportCircleUI.position = pos;
                 teleportCircleUI.forward = hitInfo.normal;
                 float distance = (pos - ARAVRInput.LHandPosition).magnitude;
                 teleportCircleUI.localScale = originScale * Mathf.Max(1, distance);
+
+                //pos += transform.localScale.y / 2f);
             }
 
             return true;
