@@ -164,6 +164,7 @@ public class golfball : MonoBehaviour
                 {
                     dir *= (1f - surfaceFriction[tag]);
                 }
+                
                 teleportCircleUI.gameObject.SetActive(true);
                 teleportCircleUI.position = pos;
                 teleportCircleUI.forward = hitInfo.normal;
