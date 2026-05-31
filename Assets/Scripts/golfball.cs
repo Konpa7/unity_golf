@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ public class golfball : MonoBehaviour
     public int linesmooth = 300;//부드러움 정도 -> (선 길이)
     public float curveLength = 50;//커브 걸이 (발사 파워를 정할 것 )
     public float gravity = -60;// 중력
-    public float simulateTime = 0.02f;//간격
+    
 
     public float leftRightAngle = 0f;
     public float upDownAngle = 45f;//8~15,20~45,45~60각도가 적당 나중에 각도 조절할 때 제한 설정할 것, 또는 각도 값을 고정으로 둘 것
@@ -36,6 +37,7 @@ public class golfball : MonoBehaviour
         
     }
 
+    
     // Update is called once per frame
     void Update()
     {
@@ -52,8 +54,10 @@ public class golfball : MonoBehaviour
             {
                 Debug.Log("tp");
                 GetComponent<CharacterController>().enabled = false;
-                transform.position = teleportCircleUI.position + (Vector3.up*0.1f);
+                //transform.position = teleportCircleUI.position + (Vector3.up*0.1f);
                 GetComponent<CharacterController>().enabled = true;
+
+                StartCoroutine(FollowLineSmooth());
             }
 
             teleportCircleUI.gameObject.SetActive(false);
@@ -63,7 +67,7 @@ public class golfball : MonoBehaviour
             MakeLines();
         }
 
-        //debug update
+        //debug update  
         UpdateWindText();//!! 옮길것
 
         leftRightAngle += deb_anglechange * Time.deltaTime;//완전 디버그용
@@ -71,6 +75,8 @@ public class golfball : MonoBehaviour
 
     void MakeLines()
     {
+        float simulateTime = Time.fixedDeltaTime;//간격
+
         lines.RemoveRange(0,lines.Count);
 
         Quaternion pitch = Quaternion.AngleAxis(-upDownAngle, transform.right); // -> 유니티에선 right축으로 음수쪽이 윗쪽방향
@@ -117,6 +123,9 @@ public class golfball : MonoBehaviour
             int layer = LayerMask.NameToLayer("Terrain");
             if(hitInfo.transform.gameObject.layer == layer)
             {
+                float radius = transform.localScale.y;
+
+                pos.y += radius/2; //구의 반지름만큼 높이 조정
                 teleportCircleUI.gameObject.SetActive(true);
                 teleportCircleUI.position = pos;
                 teleportCircleUI.forward = hitInfo.normal;
@@ -140,4 +149,25 @@ public class golfball : MonoBehaviour
 
         return;
     }
+
+    IEnumerator FollowLineSmooth() {
+
+        Vector3[] positions = new Vector3[lr.positionCount];
+        lr.GetPositions(positions);
+
+        for (int i = 0; i < positions.Length - 1; i++)
+        {
+            Vector3 start = positions[i];
+            Vector3 end = positions[i + 1];
+            float t = 0f;
+
+            while (t < 1f)
+            {
+                t += Time.deltaTime / Time.fixedDeltaTime;
+                transform.position = Vector3.Lerp(start, end, t);
+                yield return null; // 다음 프레임까지 대기
+            }
+        }
+    }
+
 }
