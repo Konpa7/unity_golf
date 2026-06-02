@@ -10,6 +10,7 @@ public class golfball : MonoBehaviour
 
     LineRenderer lr;
     Vector3 originScale = Vector3.one * 0.02f;
+    public float ballRadius = 0.1f;
 
     public int linesmooth = 500;//부드러움 정도 -> (선 길이)
     public float curveLength = 50;//커브 걸이 (발사 파워를 정할 것 )
@@ -113,7 +114,10 @@ public class golfball : MonoBehaviour
 
             Vector3 lastPos = pos;
             dir.y += gravity * simulateTime;
+<<<<<<< Updated upstream
             dir += wind * simulateTime;
+=======
+>>>>>>> Stashed changes
             pos += dir * simulateTime;
 
             if(CheckHitRay(lastPos, ref pos, ref dir))
@@ -141,6 +145,7 @@ public class golfball : MonoBehaviour
         Ray ray = new Ray(lastPos, rayDir);
         RaycastHit hitInfo;
 
+<<<<<<< Updated upstream
         if(Physics.Raycast(ray,out hitInfo, rayDir.magnitude))
         {
             float radius = transform.localScale.y; // 공의 반지름
@@ -164,6 +169,13 @@ public class golfball : MonoBehaviour
                 {
                     dir *= (1f - surfaceFriction[tag]);
                 }
+=======
+        if(Physics.SphereCast(ray, ballRadius, out hitInfo, rayDir.magnitude)) {
+            pos = hitInfo.point + hitInfo.normal * ballRadius;
+
+            int layer = LayerMask.NameToLayer("Terrain");
+            if(hitInfo.transform.gameObject.layer == layer) {
+>>>>>>> Stashed changes
                 teleportCircleUI.gameObject.SetActive(true);
                 teleportCircleUI.position = pos;
                 teleportCircleUI.forward = hitInfo.normal;
@@ -174,7 +186,7 @@ public class golfball : MonoBehaviour
             }
 
             return true;
-        }    
+        }
 
 
         return false;
