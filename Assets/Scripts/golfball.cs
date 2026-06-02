@@ -6,7 +6,10 @@ public class golfball : MonoBehaviour
     public Transform teleportCircleUI;
     LineRenderer lr;
     Vector3 originScale = Vector3.one * 0.02f;
+<<<<<<< HEAD
     public float ballRadius = transform.localScale;
+=======
+>>>>>>> parent of d260616 (Update golfball.cs)
 
     public int linesmooth = 40;//부드러움 정도
     public float curveLength = 50;//커브 걸이 (발사 파워를 정할 것 )
@@ -77,6 +80,10 @@ public class golfball : MonoBehaviour
         {
             Vector3 lastPos = pos;
             dir.y += gravity * simulateTime;
+<<<<<<< HEAD
+=======
+            dir += wind * simulateTime;
+>>>>>>> parent of d260616 (Update golfball.cs)
             pos += dir * simulateTime;
 
             if(CheckHitRay(lastPos,ref pos))
@@ -102,11 +109,37 @@ public class golfball : MonoBehaviour
         Ray ray = new Ray(lastPos, rayDir);
         RaycastHit hitInfo;
 
+<<<<<<< HEAD
         if(Physics.Raycast(ray,out hitInfo, rayDir.magnitude)) {
             pos = hitInfo.point;
 
             int layer = LayerMask.NameToLayer("Terrain");
             if(hitInfo.transform.gameObject.layer == layer) {
+=======
+        if(Physics.Raycast(ray,out hitInfo, rayDir.magnitude))
+        {
+            float radius = transform.localScale.y; // 공의 반지름
+            pos = hitInfo.point + hitInfo.normal * (radius / 2f);
+
+
+            int layer = LayerMask.NameToLayer("Terrain");
+            if(hitInfo.transform.gameObject.layer == layer)
+            {
+                //반사
+                if (dir.magnitude < stopThreshold * 2f) {
+                    dir.y = 0f; //구름 시작
+                }
+                else {
+                    dir = Vector3.Reflect(dir, hitInfo.normal) * bounciness;
+                }
+
+                //마찰
+                string tag = hitInfo.collider.tag;
+                if(surfaceFriction.ContainsKey(tag))
+                {
+                    dir *= (1f - surfaceFriction[tag]);
+                }
+>>>>>>> parent of d260616 (Update golfball.cs)
                 teleportCircleUI.gameObject.SetActive(true);
                 teleportCircleUI.position = pos;
                 teleportCircleUI.forward = hitInfo.normal;
@@ -115,7 +148,7 @@ public class golfball : MonoBehaviour
             }
 
             return true;
-        }
+        }    
 
 
         return false;
