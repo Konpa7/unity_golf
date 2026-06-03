@@ -1273,16 +1273,9 @@ MonoBehaviour:
   linesmooth: 4000
   curveLength: 50
   gravity: -60
-<<<<<<< HEAD
-  simulateTime: 0.02
-  airfriction: 0.005
-  bounciness: 0.7
-  stopThreshold: 0.5
-=======
   airfriction: 0.02
   bounciness: 0.4
   stopThreshold: 0.005
->>>>>>> parent of 493f975 (asdf)
   leftRightAngle: 0
   upDownAngle: 45
   deb_anglechange: 0
