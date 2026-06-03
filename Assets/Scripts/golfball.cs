@@ -6,7 +6,7 @@ public class golfball : MonoBehaviour
     public Transform teleportCircleUI;
     LineRenderer lr;
     Vector3 originScale = Vector3.one * 0.02f;
-    public float ballRadius = transform.localScale;
+    public float ballRadius = 0.5f;
 
     public int linesmooth = 40;//부드러움 정도
     public float curveLength = 50;//커브 걸이 (발사 파워를 정할 것 )
@@ -15,6 +15,8 @@ public class golfball : MonoBehaviour
     public float airfriction = 0.2f;//공기저항
     public float bounciness = 0.8f;//나중에 없애고 plane따라 바꿀것
     public float stopThreshold = 0.5f;//멈춤 판단 기준 속도
+
+    public Vector3 wind = new Vector3(0f,0f,3f);//바람
     Dictionary<string, float> surfaceFriction = new Dictionary<string, float>()
     {
         {"fairway", 0.2f},
@@ -94,7 +96,7 @@ public class golfball : MonoBehaviour
             dir += wind * simulateTime;
             pos += dir * simulateTime;
 
-            if(CheckHitRay(lastPos,ref pos))
+            if(CheckHitRay(lastPos,ref pos, ref dir))
             {
                 lines.Add(pos);
                 break;
@@ -111,14 +113,14 @@ public class golfball : MonoBehaviour
         lr.SetPositions(lines.ToArray());
     }
 
-    private bool CheckHitRay(Vector3 lastPos, ref Vector3 pos)
+    private bool CheckHitRay(Vector3 lastPos, ref Vector3 pos, ref Vector3 dir)
     {
         Vector3 rayDir = pos - lastPos;
         Ray ray = new Ray(lastPos, rayDir);
         RaycastHit hitInfo;
 
 
-        if(Physics.Spherecast(ray,ballRadius, out hitInfo, rayDir.magnitude))
+        if(Physics.SphereCast(ray,ballRadius, out hitInfo, rayDir.magnitude))
         {
             pos = hitInfo.point + hitInfo.normal * ballRadius;
 
