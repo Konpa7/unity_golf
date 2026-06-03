@@ -153,7 +153,7 @@ public class golfball : MonoBehaviour
             
             float ballRadius = transform.localScale.y / 2;
             RaycastHit groundHit;
-            if(Physics.Raycast(pos, Vector3.down, out groundHit, ballRadius)) {//공이 땅에 닿아있을때 -> 굴러가는 상태 따로 적용
+            if(Physics.Raycast(pos, Vector3.down, out groundHit, ballRadius+0.05f)) {//공이 땅에 닿아있을때 -> 굴러가는 상태 따로 적용
                 //if(dir.y<0f) dir.y = 0f;
                 
                 string tag = groundHit.collider.tag;
