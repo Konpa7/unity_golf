@@ -122,7 +122,7 @@ public class golfball : MonoBehaviour
 
         if(Physics.SphereCast(ray,ballRadius, out hitInfo, rayDir.magnitude))
         {
-            pos = hitInfo.point + hitInfo.normal * ballRadius;
+            pos = hitInfo.point;
 
             int layer = LayerMask.NameToLayer("Terrain");
             if(hitInfo.transform.gameObject.layer == layer)
