@@ -6,12 +6,20 @@ public class golfball : MonoBehaviour
     public Transform teleportCircleUI;
     LineRenderer lr;
     Vector3 originScale = Vector3.one * 0.02f;
+<<<<<<< HEAD
     public float ballRadius = 0.5f;
+=======
+<<<<<<< HEAD
+    public float ballRadius = transform.localScale;
+=======
+>>>>>>> parent of d260616 (Update golfball.cs)
+>>>>>>> parent of 493f975 (asdf)
 
     public int linesmooth = 40;//부드러움 정도
     public float curveLength = 50;//커브 걸이 (발사 파워를 정할 것 )
     public float gravity = -60;// 중력
     public float simulateTime = 0.02f;//간격
+<<<<<<< HEAD
     public float airfriction = 0.2f;//공기저항
     public float bounciness = 0.8f;//나중에 없애고 plane따라 바꿀것
     public float stopThreshold = 0.5f;//멈춤 판단 기준 속도
@@ -23,6 +31,8 @@ public class golfball : MonoBehaviour
         {"rough", 0.5f}
     };
     
+=======
+>>>>>>> parent of 493f975 (asdf)
 
     public float leftRightAngle = 0f;
     public float upDownAngle = 45f;//8~15,20~45,45~60각도가 적당 나중에 각도 조절할 때 제한 설정할 것, 또는 각도 값을 고정으로 둘 것
@@ -86,14 +96,12 @@ public class golfball : MonoBehaviour
 
         for(int i=0;i<linesmooth;i++)
         {
-            if(pos.y < -10f)
-            {
-                break;
-            }
-
             Vector3 lastPos = pos;
             dir.y += gravity * simulateTime;
+<<<<<<< HEAD
+=======
             dir += wind * simulateTime;
+>>>>>>> parent of d260616 (Update golfball.cs)
             pos += dir * simulateTime;
 
             if(CheckHitRay(lastPos,ref pos, ref dir))
@@ -119,18 +127,33 @@ public class golfball : MonoBehaviour
         Ray ray = new Ray(lastPos, rayDir);
         RaycastHit hitInfo;
 
-
-        if(Physics.SphereCast(ray,ballRadius, out hitInfo, rayDir.magnitude))
-        {
+<<<<<<< HEAD
+        if(Physics.Raycast(ray,out hitInfo, rayDir.magnitude)) {
             pos = hitInfo.point;
+
+<<<<<<< HEAD
+        if(Physics.SphereCast(ray,ballRadius, out hitInfo, rayDir.magnitude))
+=======
+            int layer = LayerMask.NameToLayer("Terrain");
+            if(hitInfo.transform.gameObject.layer == layer) {
+=======
+        if(Physics.Raycast(ray,out hitInfo, rayDir.magnitude))
+>>>>>>> parent of 493f975 (asdf)
+        {
+            float radius = transform.localScale.y; // 공의 반지름
+            pos = hitInfo.point + hitInfo.normal * (radius / 2f);
+
 
             int layer = LayerMask.NameToLayer("Terrain");
             if(hitInfo.transform.gameObject.layer == layer)
             {
-                float radius = transform.localScale.y;
-
                 //반사
-                dir = Vector3.Reflect(dir, hitInfo.normal) * bounciness;
+                if (dir.magnitude < stopThreshold * 2f) {
+                    dir.y = 0f; //구름 시작
+                }
+                else {
+                    dir = Vector3.Reflect(dir, hitInfo.normal) * bounciness;
+                }
 
                 //마찰
                 string tag = hitInfo.collider.tag;
@@ -138,8 +161,12 @@ public class golfball : MonoBehaviour
                 {
                     dir *= (1f - surfaceFriction[tag]);
                 }
+<<<<<<< HEAD
                 
 
+=======
+>>>>>>> parent of d260616 (Update golfball.cs)
+>>>>>>> parent of 493f975 (asdf)
                 teleportCircleUI.gameObject.SetActive(true);
                 teleportCircleUI.position = pos;
                 teleportCircleUI.forward = hitInfo.normal;
