@@ -4,12 +4,17 @@ using UnityEngine;
 
 public class golfball : MonoBehaviour
 {
+    public static bool FreezeControl = false;
+    public static bool fire = false;
+    public static float powerval = 1.0f;
+
+
     public Transform teleportCircleUI;
     public TMPro.TextMeshProUGUI windtextUI;
     public RectTransform windArrowUI;
 
-    public int linesmooth = 4000;//부드러움 정도 -> (선 길이)
-    public float curveLength = 50;//커브 걸이 (발사 파워를 정할 것 )
+    public int linesmooth = 1000;//부드러움 정도 -> (선 길이)
+    public float power = 50;
     public float gravity = -60;// 중력
     public float airfriction = 0.005f;//공기저항
     public float bounciness = 0.7f;//나중에 없애고 plane따라 바꿀것
@@ -24,14 +29,14 @@ public class golfball : MonoBehaviour
 
     //debug var (아래 값은 디버그할 때만 쓰일 것)
     float deb_anglechange = 0f;
-    public Vector3 debug_val1;
+    public float debug_val1;
     public float debug_enableFriction_percentage = 100f;//마찰력 적용 여부
     public bool debug_enablebounciness = true;//마찰력 적용 여부
 
     public Vector3 wind = new Vector3(2f,0f,0f);
 
 
-    List<Vector3> lines =  new List<Vector3>();
+    //List<Vector3> lines =  new List<Vector3>();
         Dictionary<string, float> surfaceFriction = new Dictionary<string, float>()
     {
         {"fairway", 0.2f},
@@ -42,11 +47,11 @@ public class golfball : MonoBehaviour
         {"fairway", 0.7f},
         {"rough", 0.5f}
     };
-    
+    Vector3[] linePositions;
+    int lp_cnt = 0;
 
     LineRenderer lr;
     Vector3 originScale = Vector3.one * 0.02f;
-    bool freezeControl = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -57,36 +62,29 @@ public class golfball : MonoBehaviour
         lr = GetComponent<LineRenderer>();
         lr.startWidth = 0.1f;
         lr.endWidth = 0.1f;
+
+        linePositions = new Vector3[linesmooth * 2];
     }
     
     // Update is called once per frame
     void Update()
     {
-        if (!freezeControl) {
-            if(ARAVRInput.GetDown(ARAVRInput.Button.HandTrigger ,ARAVRInput.Controller.LTouch))
+        if (!FreezeControl) {
+            
+            MakeLines();
+            if(fire == true)
             {
                 
-                lr.enabled = true;
-            }
-            else if (ARAVRInput.GetUp(ARAVRInput.Button.HandTrigger,ARAVRInput.Controller.LTouch))
-            {
-                lr.enabled = false;
-
+                fire = false;
+                
                 if(teleportCircleUI.gameObject.activeSelf)
                 {
                     Debug.Log("tp");
-                    GetComponent<CharacterController>().enabled = false;
-                    //transform.position = teleportCircleUI.position + (Vector3.up*0.1f);
-                    GetComponent<CharacterController>().enabled = true;
-
                     StartCoroutine(FollowLineSmooth());
-                }
 
+                    
+                }
                 teleportCircleUI.gameObject.SetActive(false);
-            }
-            else if (ARAVRInput.Get(ARAVRInput.Button.HandTrigger, ARAVRInput.Controller.LTouch))
-            {
-                MakeLines();
             }
             
 
@@ -106,7 +104,7 @@ public class golfball : MonoBehaviour
             {
                 upDownAngle -= angleSpeed;
             }
-            }
+        }
 
         //debug update  
         UpdateWindText();//!! 옮길것
@@ -115,24 +113,28 @@ public class golfball : MonoBehaviour
 
         Quaternion yaw = Quaternion.AngleAxis(leftRightAngle, transform.up);
         Quaternion pitch = Quaternion.AngleAxis(-upDownAngle, transform.right);
-        debug_val1 = pitch * yaw * transform.forward;
+        debug_val1 = powerval;
+    }
+
+    void FixedUpdate()
+    {
+        
     }
 
     void MakeLines()
     {
-        float simulateTime = Time.fixedDeltaTime * 0.5f;//간격
-
-        lines.RemoveRange(0,lines.Count);
-
+        float simulateTime = Time.fixedDeltaTime;//간격
 
         Quaternion yaw = Quaternion.AngleAxis(leftRightAngle, transform.up);
-        Quaternion pitch = Quaternion.AngleAxis(-upDownAngle, transform.right); // -> 유니티에선 right축으로 음수쪽이 윗쪽방향
-        
+        Quaternion pitch = Quaternion.AngleAxis(-upDownAngle, transform.right); // -> 유니티에선 right축으로 음수쪽이 윗쪽방향  
 
-        Vector3 dir = yaw * pitch * transform.forward * curveLength;
+        float temp = power * powerval;
+        Vector3 dir = yaw * pitch * transform.forward * temp;
         Vector3 pos = transform.position;
-        lines.Add(pos);
-
+        
+        lp_cnt = 0;
+        linePositions[lp_cnt++] = pos;
+        
         for(int i=0;i<linesmooth;i++)
         {
             if (dir.magnitude < stopThreshold) {
@@ -175,7 +177,7 @@ public class golfball : MonoBehaviour
 
             if(CheckHitRay(lastPos, ref pos, ref dir))
             {//선이 바닥과 충돌했을 경우
-                lines.Add(pos);
+                linePositions[lp_cnt++] = pos;
                 //break;
             }
             else
@@ -185,11 +187,11 @@ public class golfball : MonoBehaviour
 
             dir *= 1f - (airfriction * simulateTime);//공기저항 적용
 
-            lines.Add(pos);
+            linePositions[lp_cnt++] = pos;
         }   
 
-        lr.positionCount = lines.Count;
-        lr.SetPositions(lines.ToArray());
+        lr.positionCount = lp_cnt;
+        lr.SetPositions(linePositions);
     }
 
     private bool CheckHitRay(Vector3 lastPos, ref Vector3 pos, ref Vector3 dir)
@@ -210,7 +212,7 @@ public class golfball : MonoBehaviour
             {
                 //반사
                 if(debug_enablebounciness) {
-                   if (dir.magnitude < stopThreshold * 2f) {
+                   if (dir.magnitude < stopThreshold * 10f) {
                     dir.y = 0f; //구름 시작
                     }
                     else {
@@ -251,7 +253,9 @@ public class golfball : MonoBehaviour
     }
 
     IEnumerator FollowLineSmooth() {
-        freezeControl = true;
+        FreezeControl = true;
+        lr.enabled = false;
+
         Debug.Log("이동 전 rotation: " + transform.rotation.eulerAngles);
         Vector3[] positions = new Vector3[lr.positionCount];
         lr.GetPositions(positions);
@@ -274,8 +278,9 @@ public class golfball : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, 90f, 0f);// 회전 초기화 
         leftRightAngle = 0f;
         upDownAngle = 45f;
-
-        freezeControl = false;
+        powerval = 1.0f;
+        lr.enabled = true;
+        FreezeControl = false;
     }
 
 }
