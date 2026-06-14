@@ -42,13 +42,13 @@ public class golfball : MonoBehaviour
     //List<Vector3> lines =  new List<Vector3>();
     Dictionary<string, float> surfaceFriction = new Dictionary<string, float>()
     {
-        {"fairway", 0.2f},
-        {"rough", 0.4f}
+        {"fairway", 0.4f},
+        {"rough", 0.8f}
     };
     Dictionary<string, float> surfaceBounciness = new Dictionary<string, float>()
     {
         {"fairway", 0.8f},
-        {"rough", 0.6f}
+        {"rough", 0.4f}
     };
     Vector3[] linePositions;
     int lp_cnt = 0;
@@ -240,7 +240,6 @@ public class golfball : MonoBehaviour
 
             if(hitInfo.collider.CompareTag("Holecup"))
             {
-
                 return 2;
             }
 
@@ -266,7 +265,7 @@ public class golfball : MonoBehaviour
                 string tag = hitInfo.collider.tag;
                 if(surfaceFriction.ContainsKey(tag))
                 {
-                    dir *= 1f - surfaceFriction[tag] * (debug_enableFriction_percentage * 0.01f);
+                    //dir *= 1f - surfaceFriction[tag] * (debug_enableFriction_percentage * 0.01f);
                 }
             }
 
